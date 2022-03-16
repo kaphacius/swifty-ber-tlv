@@ -31,11 +31,11 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         self.subTags = isConstructed ? try BERTLV.parse(bytes: value) : []
     }
     
-    let tag: UInt64
-    let value: [UInt8]
+    public let tag: UInt64
+    public let value: [UInt8]
     
-    let subTags: [BERTLV]
-    let isConstructed: Bool
+    public let subTags: [BERTLV]
+    public let isConstructed: Bool
     
     public var description: String {
         "0x\(tag.hexString) -> 0x\(value.map(\.hexString))"
