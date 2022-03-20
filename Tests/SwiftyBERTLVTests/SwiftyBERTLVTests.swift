@@ -12,7 +12,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParsePrimitiveTag() throws {
-        let data: Bytes = [0xC1, 0x01, 0x01]
+        let data: [UInt8] = [0xC1, 0x01, 0x01]
         
         let sut = try BERTLV.parse(bytes: data)
         
@@ -27,7 +27,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseNoLength() throws {
-        let data: Bytes = [0xC1]
+        let data: [UInt8] = [0xC1]
         
         XCTAssertThrowsError(
             try BERTLV.parse(bytes: data),
@@ -58,7 +58,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseZeroLengthPrimitiveTag() throws {
-        let data: Bytes = [0xC1, 0x00]
+        let data: [UInt8] = [0xC1, 0x00]
         
         let sut = try BERTLV.parse(bytes: data)
         
@@ -72,7 +72,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseConstructedTag() throws {
-        let data: Bytes = [0xE1, 0x03, 0x5A, 0x01, 0xFF]
+        let data: [UInt8] = [0xE1, 0x03, 0x5A, 0x01, 0xFF]
         
         let sut = try BERTLV.parse(bytes: data)
         
@@ -93,7 +93,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testValueTooShort() throws {
-        let data: Bytes = [0xE1, 0x03, 0xFF, 0xFF]
+        let data: [UInt8] = [0xE1, 0x03, 0xFF, 0xFF]
         
         XCTAssertThrowsError(
             try BERTLV.parse(bytes: data),
@@ -108,7 +108,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseLongLengthTag() throws {
-        let data: Bytes = [
+        let data: [UInt8] = [
             0x4F,
             0x84, 0x00, 0x00, 0x00, 0x03,
             0xAA, 0xBB, 0xCC
@@ -126,7 +126,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseLongLengthZeroLengthTag() throws {
-        let data: Bytes = [
+        let data: [UInt8] = [
             0x4F,
             0x84, 0x00, 0x00, 0x00, 0x00
         ]
@@ -143,7 +143,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseLongFormTypeTag() throws {
-        let data: Bytes = [
+        let data: [UInt8] = [
             0xDF, 0xDF, 0xDF, 0x33,
             0x81, 0x00
         ]
@@ -160,7 +160,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testParseConstructedSubtags() throws {
-        let data: Bytes = [0xE1, 0x03, 0x5A, 0x01, 0xFF]
+        let data: [UInt8] = [0xE1, 0x03, 0x5A, 0x01, 0xFF]
         
         let sut = try BERTLV.parse(bytes: data)
         
@@ -181,7 +181,7 @@ final class SwiftyBERTLVTests: XCTestCase {
     }
     
     func testNoParsePrimitiveSubtags() throws {
-        let data: Bytes = [0x50, 0x03, 0x5A, 0x01, 0xFF]
+        let data: [UInt8] = [0x50, 0x03, 0x5A, 0x01, 0xFF]
         
         let sut = try BERTLV.parse(bytes: data)
         
