@@ -7,13 +7,9 @@
 
 import Foundation
 
-internal typealias Byte = UInt8
-internal typealias Bytes = [Byte]
-internal let bitsInByte = Byte.bitWidth
-
 extension UInt8 {
     
-    internal var hexString: String {
+    public var hexString: String {
         String(format: "%02X", self)
     }
     
@@ -21,12 +17,8 @@ extension UInt8 {
 
 extension UInt64 {
     
-    internal var hexString: String {
+    public var hexString: String {
         String(format: "%02X", self)
-    }
-    
-    internal var byteLength: Int {
-        8 - (self.leadingZeroBitCount / 8)
     }
     
 }
