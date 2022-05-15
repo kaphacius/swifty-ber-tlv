@@ -24,14 +24,21 @@ extension BERTLV {
 
 public struct BERTLV: CustomStringConvertible, Equatable {
     
-    internal init(tag: UInt64, value: [UInt8], isConstructed: Bool) throws {
+    internal init(
+        tag: UInt64,
+        lengthBytes: [UInt8],
+        value: [UInt8],
+        isConstructed: Bool
+    ) throws {
         self.tag = tag
+        self.lengthBytes = lengthBytes
         self.value = value
         self.isConstructed = isConstructed
         self.subTags = isConstructed ? try BERTLV.parse(bytes: value) : []
     }
     
     public let tag: UInt64
+    public let lengthBytes: [UInt8]
     public let value: [UInt8]
     
     public let subTags: [BERTLV]
@@ -47,14 +54,21 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         
         while bytes.count != 0 {
             let (type, typeLength, isConstructed) = try type(from: bytes)
-            let (length, lengthLength) = try length(from: Array(bytes.dropFirst(typeLength)))
+            let (length, lengthLength, lengthBytes) = try length(
+                from: Array(bytes.dropFirst(typeLength))
+            )
             let from: Int = typeLength + lengthLength
             let to: Int = from + Int(length)
             guard bytes.endIndex >= to else {
                 throw Error.valueTooShort
             }
             let value: [UInt8] = Array(bytes[from..<to])
-            let tag = try BERTLV(tag: type, value: value, isConstructed: isConstructed)
+            let tag = try BERTLV(
+                tag: type,
+                lengthBytes: lengthBytes,
+                value: value,
+                isConstructed: isConstructed
+            )
             tags.append(tag)
             bytes = Array(bytes.dropFirst(typeLength + lengthLength + Int(length)))
         }
@@ -102,7 +116,8 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         from bytes: [UInt8]
     ) throws -> (
         length: UInt64,
-        lengthLength: Int
+        lengthLength: Int,
+        lengthBytes: [UInt8]
     ) {
         guard let first = bytes.first else {
             throw Error.missingLength
@@ -110,10 +125,12 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         
         var length: UInt64
         let lengthLength: Int
+        var lengthBytes: [UInt8]
         
         // Length long form
         if first & 0x80 == 0x80 {
             length = 0
+            lengthBytes = []
             
             // Length length
             // Length of length is stored in second nibble
@@ -127,13 +144,15 @@ public struct BERTLV: CustomStringConvertible, Equatable {
             for byte in bytes.dropFirst()[1..<lengthLength] {
                 length <<= 8
                 length |= UInt64(byte)
+                lengthBytes.append(byte)
             }
         } else {
             length = UInt64(first)
             lengthLength = 1
+            lengthBytes = [first]
         }
         
-        return (length, lengthLength)
+        return (length, lengthLength, lengthBytes)
     }
     
 }
