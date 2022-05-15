@@ -22,3 +22,12 @@ extension UInt64 {
     }
     
 }
+
+extension Array where Self.Element == UInt8 {
+    
+    public var hexString: String {
+        map(\.hexString).joined()
+    }
+    
+}
+
