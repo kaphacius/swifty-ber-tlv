@@ -130,7 +130,7 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         // Length long form
         if first & 0x80 == 0x80 {
             length = 0
-            lengthBytes = []
+            lengthBytes = [first]
             
             // Length length
             // Length of length is stored in second nibble
