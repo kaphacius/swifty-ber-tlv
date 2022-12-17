@@ -7,17 +7,17 @@
 
 import Foundation
 
-extension UnsignedInteger {
-
+extension FixedWidthInteger {
+    
     public var hexString: String {
-        stride(from: 0, to: self.bitWidth, by: 8).map { idx in
-            String(
-                format: "%02X",
-                UInt8(truncatingIfNeeded: (self << idx) >> (bitWidth - 8))
-            )
-        }.joined()
+        let converted = String(self, radix: 16, uppercase: true)
+        if converted.count % 2 == 0 {
+            return converted
+        } else {
+            return "0".appending(converted)
+        }
     }
-
+    
 }
 
 extension Array where Self.Element == UInt8 {

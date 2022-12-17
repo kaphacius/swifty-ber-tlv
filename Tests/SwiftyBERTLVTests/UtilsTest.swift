@@ -24,8 +24,14 @@ final class UtilsTest: XCTestCase {
         let uint64: UInt64 = 0xABCDEF0123456789
         XCTAssertEqual("ABCDEF0123456789", uint64.hexString)
 
-        let smallUint8: UInt8 = 0x0A
-        XCTAssertEqual("0A", smallUint8.hexString)
+        let smallUInt8: UInt8 = 0x0A
+        XCTAssertEqual("0A", smallUInt8.hexString)
+        
+        let smallUInt64: UInt64 = 0x00000000000000BB
+        XCTAssertEqual("BB", smallUInt64.hexString)
+        
+        let otherUInt64: UInt64 = 0xAA000000000000BB
+        XCTAssertEqual("AA000000000000BB", otherUInt64.hexString)
         
     }
     
