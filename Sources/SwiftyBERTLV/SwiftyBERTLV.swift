@@ -11,6 +11,7 @@ extension BERTLV {
     
     public enum Error: LocalizedError {
         
+        case failedToParseHexString
         case missingLength
         case missingType
         case wrongLongLength
@@ -46,6 +47,14 @@ public struct BERTLV: CustomStringConvertible, Equatable {
     
     public var description: String {
         "0x\(tag.hexString) -> 0x\(value.map(\.hexString))"
+    }
+    
+    public static func parse(hexString: String) throws -> [BERTLV] {
+        guard let bytes = [UInt8](hexString: hexString) else {
+            throw Error.failedToParseHexString
+        }
+        
+        return try parse(bytes: bytes)
     }
     
     public static func parse(bytes: [UInt8]) throws -> [BERTLV] {
