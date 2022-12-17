@@ -17,12 +17,15 @@ final class UtilsTest: XCTestCase {
         
         let uint16: UInt16 = 0xABCD
         XCTAssertEqual("ABCD", uint16.hexString)
-        
-        let uint32: UInt32 = 0xABCDEF
-        XCTAssertEqual("ABCDEF", uint32.hexString)
-        
+
+        let uint32: UInt32 = 0xABCDEF01
+        XCTAssertEqual("ABCDEF01", uint32.hexString)
+
         let uint64: UInt64 = 0xABCDEF0123456789
         XCTAssertEqual("ABCDEF0123456789", uint64.hexString)
+
+        let smallUint8: UInt8 = 0x0A
+        XCTAssertEqual("0A", smallUint8.hexString)
         
     }
     

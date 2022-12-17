@@ -10,7 +10,12 @@ import Foundation
 extension UnsignedInteger {
 
     public var hexString: String {
-        String(self, radix: 16, uppercase: true)
+        stride(from: 0, to: self.bitWidth, by: 8).map { idx in
+            String(
+                format: "%02X",
+                UInt8(truncatingIfNeeded: (self << idx) >> (bitWidth - 8))
+            )
+        }.joined()
     }
 
 }
