@@ -96,5 +96,19 @@ final class UtilsTest: XCTestCase {
         XCTAssertNil(Data(hexString: input))
         
     }
+    
+    func testIntegerToBytes() throws {
+        let int1: UInt8 = 0xAA
+        XCTAssertEqual(int1.bytes, [int1])
+        
+        let int2: UInt16 = 0xAABB
+        XCTAssertEqual(int2.bytes, [0xAA, 0xBB])
+        
+        let int3: UInt32 = 0x00AA00BB
+        XCTAssertEqual(int3.bytes, [0xAA, 0x00, 0xBB])
+        
+        let int4: UInt64 = 0x00000000000000FF
+        XCTAssertEqual(int4.bytes, [0xFF])
+    }
 
 }

@@ -18,6 +18,16 @@ extension FixedWidthInteger {
         }
     }
     
+    public var bytes: [UInt8] {
+        let totalBytes = self.bitWidth / UInt8.bitWidth
+        let leadingZeroBytes: Int = (self.leadingZeroBitCount / UInt8.bitWidth)
+        
+        return stride(from: totalBytes - leadingZeroBytes - 1, through: 0, by: -1)
+            .map { byteNumber in
+                UInt8(truncatingIfNeeded: self >> (byteNumber * UInt8.bitWidth))
+            }
+    }
+    
 }
 
 extension Array where Self.Element == UInt8 {
