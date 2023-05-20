@@ -1,53 +1,13 @@
 //
-//  Utils.swift
+//  BERTLVParsing.swift
+//  
 //
-//
-//  Created by Yurii Zadoianchuk on 14/03/2022.
+//  Created by Yurii Zadoianchuk on 20/05/2023.
 //
 
 import Foundation
 
 extension BERTLV {
-    
-    public enum Error: LocalizedError {
-        
-        case failedToParseHexString
-        case missingLength
-        case missingType
-        case wrongLongLength
-        case typeLengthMismatch
-        case valueTooShort
-        case parsingError
-        
-    }
-
-}
-
-public struct BERTLV: CustomStringConvertible, Equatable {
-    
-    internal init(
-        tag: UInt64,
-        lengthBytes: [UInt8],
-        value: [UInt8],
-        isConstructed: Bool
-    ) throws {
-        self.tag = tag
-        self.lengthBytes = lengthBytes
-        self.value = value
-        self.isConstructed = isConstructed
-        self.subTags = isConstructed ? try BERTLV.parse(bytes: value) : []
-    }
-    
-    public let tag: UInt64
-    public let lengthBytes: [UInt8]
-    public let value: [UInt8]
-    
-    public let subTags: [BERTLV]
-    public let isConstructed: Bool
-    
-    public var description: String {
-        "0x\(tag.hexString) -> 0x\(value.map(\.hexString))"
-    }
     
     public static func parse(hexString: String) throws -> [BERTLV] {
         guard let bytes = [UInt8](hexString: hexString) else {
@@ -63,29 +23,28 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         
         while bytes.count != 0 {
             let (type, typeLength, isConstructed) = try type(from: bytes)
-            let (length, lengthLength, lengthBytes) = try length(
+            let (length, lengthLength) = try length(
                 from: Array(bytes.dropFirst(typeLength))
             )
             let from: Int = typeLength + lengthLength
-            let to: Int = from + Int(length)
+            let to: Int = from + length
             guard bytes.endIndex >= to else {
                 throw Error.valueTooShort
             }
             let value: [UInt8] = Array(bytes[from..<to])
             let tag = try BERTLV(
                 tag: type,
-                lengthBytes: lengthBytes,
                 value: value,
                 isConstructed: isConstructed
             )
             tags.append(tag)
-            bytes = Array(bytes.dropFirst(typeLength + lengthLength + Int(length)))
+            bytes = Array(bytes.dropFirst(typeLength + lengthLength + length))
         }
         
         return tags
     }
     
-    public static func type(
+    internal static func type(
         from bytes: [UInt8]
     ) throws -> (
         type: UInt64,
@@ -121,29 +80,26 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         return (type, typeLength, isConstructed)
     }
     
-    public static func length(
+    internal static func length(
         from bytes: [UInt8]
     ) throws -> (
-        length: UInt64,
-        lengthLength: Int,
-        lengthBytes: [UInt8]
+        length: Int,
+        lengthLength: Int
     ) {
         guard let first = bytes.first else {
             throw Error.missingLength
         }
         
-        var length: UInt64
+        var length: Int
         let lengthLength: Int
-        var lengthBytes: [UInt8]
         
         // Length long form
         if first & 0x80 == 0x80 {
             length = 0
-            lengthBytes = [first]
             
             // Length length
-            // Length of length is stored in second nibble
-            // 1 is for the byte containing length length
+            // Length of length is stored in bits 7-1
+            // Adding 1 is for the byte containing length length
             lengthLength = Int(first & 0x0F) + 1
             
             guard lengthLength <= bytes.dropFirst().endIndex else {
@@ -152,16 +108,14 @@ public struct BERTLV: CustomStringConvertible, Equatable {
             
             for byte in bytes.dropFirst()[1..<lengthLength] {
                 length <<= 8
-                length |= UInt64(byte)
-                lengthBytes.append(byte)
+                length |= Int(byte)
             }
         } else {
-            length = UInt64(first)
+            length = Int(first)
             lengthLength = 1
-            lengthBytes = [first]
         }
         
-        return (length, lengthLength, lengthBytes)
+        return (length, lengthLength)
     }
     
 }

@@ -195,4 +195,40 @@ final class SwiftyBERTLVTests: XCTestCase {
         XCTAssertTrue(sutTag.subTags.isEmpty)
     }
     
+    func testShortBytesRepresentation() throws {
+        let data: [UInt8] = [0xC1, 0x01, 0x01]
+        
+        let tag = try BERTLV.parse(bytes: data)[0]
+        
+        let sut = tag.bytes
+        XCTAssertEqual(sut, data)
+    }
+    
+    func testLongTagTypeBytesRepresentation() throws {
+        let data: [UInt8] = [0xDF, 0xBF, 0x05, 0x01, 0x01]
+        
+        let tag = try BERTLV.parse(bytes: data)[0]
+        
+        let sut = tag.bytes
+        XCTAssertEqual(sut, data)
+    }
+    
+    func testLongValueBytesRepresentation() throws {
+        let data: [UInt8] = [0xC1, 0x81, 0x80] + Array(repeating: 0xFF, count: 128)
+        
+        let tag = try BERTLV.parse(bytes: data)[0]
+        
+        let sut = tag.bytes
+        XCTAssertEqual(sut, data)
+    }
+    
+    func testVeryLongValueBytesRepresentation() throws {
+        let data: [UInt8] = [0xC1, 0x83, 0x07, 0xA1, 0x20] + Array(repeating: 0xFF, count: 500000)
+        
+        let tag = try BERTLV.parse(bytes: data)[0]
+        
+        let sut = tag.bytes
+        XCTAssertEqual(sut, data)
+    }
+    
 }
