@@ -9,6 +9,8 @@ import Foundation
 
 extension FixedWidthInteger {
     
+    static var paddingByte: Self { 0x00 }
+    
     public var hexString: String {
         let converted = String(self, radix: 16, uppercase: true)
         if converted.count % 2 == 0 {

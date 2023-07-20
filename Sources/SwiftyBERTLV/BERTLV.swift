@@ -34,6 +34,16 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         self.subTags = isConstructed ? try BERTLV.parse(bytes: value) : []
     }
     
+    /// Padding byte initializer
+    private init() {
+        self.tag = .paddingByte
+        self.value = []
+        self.isConstructed = false
+        self.subTags = []
+    }
+    
+    internal static let paddingByte: BERTLV = .init()
+    
     public let tag: UInt64
     public let value: [UInt8]
     

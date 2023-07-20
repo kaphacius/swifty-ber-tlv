@@ -231,4 +231,19 @@ final class SwiftyBERTLVTests: XCTestCase {
         XCTAssertEqual(sut, data)
     }
     
+    func testParseZeroPadding() throws {
+        let data: [UInt8] = [
+            0x00,
+            0xDF, 0xBF, 0x05, 0x01, 0x01,
+            0x00,
+            0x00,
+            0xC1, 0x01, 0x00,
+            0x00
+        ]
+        
+        let tags = try BERTLV.parse(bytes: data)
+        XCTAssertEqual(tags.count, 6)
+        XCTAssertEqual(data, tags.flatMap(\.bytes))
+    }
+    
 }

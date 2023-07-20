@@ -22,23 +22,33 @@ extension BERTLV {
         var bytes = bytes
         
         while bytes.count != 0 {
-            let (type, typeLength, isConstructed) = try type(from: bytes)
-            let (length, lengthLength) = try length(
-                from: Array(bytes.dropFirst(typeLength))
-            )
-            let from: Int = typeLength + lengthLength
-            let to: Int = from + length
-            guard bytes.endIndex >= to else {
-                throw Error.valueTooShort
+            if let first = bytes.first,
+               first == .paddingByte {
+                // Padding byte
+                // According to Annex B of EMV 4.3 Book 3:
+                // Before, between, or after TLV-coded data objects, '00' bytes without any meaning
+                // may occur (for example, due to erased or modified TLV-coded data objects).
+                tags.append(.paddingByte)
+                bytes = Array(bytes.dropFirst())
+            } else {
+                let (type, typeLength, isConstructed) = try type(from: bytes)
+                let (length, lengthLength) = try length(
+                    from: Array(bytes.dropFirst(typeLength))
+                )
+                let from: Int = typeLength + lengthLength
+                let to: Int = from + length
+                guard bytes.endIndex >= to else {
+                    throw Error.valueTooShort
+                }
+                let value: [UInt8] = Array(bytes[from..<to])
+                let tag = try BERTLV(
+                    tag: type,
+                    value: value,
+                    isConstructed: isConstructed
+                )
+                tags.append(tag)
+                bytes = Array(bytes.dropFirst(typeLength + lengthLength + length))
             }
-            let value: [UInt8] = Array(bytes[from..<to])
-            let tag = try BERTLV(
-                tag: type,
-                value: value,
-                isConstructed: isConstructed
-            )
-            tags.append(tag)
-            bytes = Array(bytes.dropFirst(typeLength + lengthLength + length))
         }
         
         return tags
