@@ -32,9 +32,10 @@ extension BERTLV {
                 bytes = Array(bytes.dropFirst())
             } else {
                 let (type, typeLength, isConstructed) = try type(from: bytes)
-                let (length, lengthLength) = try length(
+                let (length, lengthBytes) = try length(
                     from: Array(bytes.dropFirst(typeLength))
                 )
+                let lengthLength = lengthBytes.count
                 let from: Int = typeLength + lengthLength
                 let to: Int = from + length
                 guard bytes.endIndex >= to else {
@@ -43,6 +44,7 @@ extension BERTLV {
                 let value: [UInt8] = Array(bytes[from..<to])
                 let tag = try BERTLV(
                     tag: type,
+                    lengthBytes: lengthBytes,
                     value: value,
                     isConstructed: isConstructed
                 )
@@ -94,16 +96,17 @@ extension BERTLV {
         from bytes: [UInt8]
     ) throws -> (
         length: Int,
-        lengthLength: Int
+        lengthBytes: [UInt8]
     ) {
         guard let first = bytes.first else {
             throw Error.missingLength
         }
         
-        var length: Int
         let lengthLength: Int
+        var length: Int
+        var lengthBytes: [UInt8] = [first]
         
-        // Length long form
+        // Length is in long form if bit 8 is set to 1
         if first & 0x80 == 0x80 {
             length = 0
             
@@ -119,13 +122,14 @@ extension BERTLV {
             for byte in bytes.dropFirst()[1..<lengthLength] {
                 length <<= 8
                 length |= Int(byte)
+                lengthBytes.append(byte)
             }
         } else {
             length = Int(first)
             lengthLength = 1
         }
         
-        return (length, lengthLength)
+        return (length, lengthBytes)
     }
     
 }

@@ -21,6 +21,11 @@ extension FixedWidthInteger {
     }
     
     public var bytes: [UInt8] {
+        guard self != .zero else {
+            // If the value is zero - it can be represented as one byte with value zero
+            return [0x00]
+        }
+        
         let totalBytes = self.bitWidth / UInt8.bitWidth
         let leadingZeroBytes: Int = (self.leadingZeroBitCount / UInt8.bitWidth)
         
