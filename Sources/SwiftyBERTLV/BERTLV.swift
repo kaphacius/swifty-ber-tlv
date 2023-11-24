@@ -6,22 +6,65 @@
 //
 
 import Foundation
-
-extension BERTLV {
     
-    public enum Error: LocalizedError {
-        
-        case failedToParseHexString
-        case missingLength
-        case missingType
-        case wrongLongLength
-        case valueTooShort
-        
-    }
-
+public enum BERTLVError: Error {
+    
+    case failedToParseHexString
+    case missingLength
+    case missingType
+    case wrongLongLength
+    case valueTooShort
+    case wrongPaddingByte(UInt8)
+    
 }
 
+/// A structure represending data encoded according to ISO 7816 Annex D.1: BER-TLV data object
 public struct BERTLV: CustomStringConvertible, Equatable {
+    
+    /// Category of the tag
+    public enum Category: Equatable {
+        
+        /// Plain tag
+        case plain
+        
+        /// Constructed tag, where value is a list of TLV
+        case constructed(subtags: [BERTLV])
+    }
+    
+    /// Tag
+    public let tag: UInt64
+    
+    /// Value
+    public let value: [UInt8]
+    
+    /// Category
+    public let category: Category
+    
+    /// Original bytes encoding length
+    public let lengthBytes: [UInt8]
+    
+    /// BERTLV as bytes
+    public var bytes: [UInt8] {
+        tag.bytes + lengthBytes + value
+    }
+    
+    /// Human-readable description
+    public var description: String {
+        "0x\(tag.hexString) -> 0x\(value.map(\.hexString))"
+    }
+    
+    internal static func paddingByte(_ value: UInt8) throws -> BERTLV {
+        guard value.isPaddingByte else {
+            throw BERTLVError.wrongPaddingByte(value)
+        }
+        
+        return try .init(
+            tag: UInt64(value),
+            lengthBytes: [],
+            value: [],
+            isConstructed: false
+        )
+    }
     
     internal init(
         tag: UInt64,
@@ -32,8 +75,11 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         self.tag = tag
         self.lengthBytes = lengthBytes
         self.value = value
-        self.isConstructed = isConstructed
-        self.subTags = isConstructed ? try BERTLV.parse(bytes: value) : []
+        if isConstructed {
+            self.category = .constructed(subtags: try BERTLV.parse(bytes: value))
+        } else {
+            self.category = .plain
+        }
     }
     
     /// Padding byte initializer
@@ -41,25 +87,7 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         self.tag = .paddingByte
         self.lengthBytes = []
         self.value = []
-        self.isConstructed = false
-        self.subTags = []
-    }
-    
-    internal static let paddingByte: BERTLV = .init()
-    
-    public let tag: UInt64
-    public let value: [UInt8]
-    
-    public let subTags: [BERTLV]
-    public let isConstructed: Bool
-    public let lengthBytes: [UInt8]
-    
-    public var bytes: [UInt8] {
-        tag.bytes + lengthBytes + value
-    }
-    
-    public var description: String {
-        "0x\(tag.hexString) -> 0x\(value.map(\.hexString))"
+        self.category = .plain
     }
     
 }

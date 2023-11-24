@@ -23,7 +23,7 @@ public struct DataObject {
     /// - Returns: An array of parsed ``DataObject``.
     public static func parse(hexString: String) throws -> [DataObject] {
         guard let bytes = [UInt8](hexString: hexString) else {
-            throw BERTLV.Error.failedToParseHexString
+            throw BERTLVError.failedToParseHexString
         }
         
         return try parse(bytes: bytes)

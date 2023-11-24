@@ -10,6 +10,11 @@ import Foundation
 extension FixedWidthInteger {
     
     static var paddingByte: Self { 0x00 }
+    static var otherPaddingByte: Self { 0xFF }
+    
+    public var isPaddingByte: Bool {
+        self == Self.paddingByte || self == Self.otherPaddingByte
+    }
     
     public var hexString: String {
         let converted = String(self, radix: 16, uppercase: true)

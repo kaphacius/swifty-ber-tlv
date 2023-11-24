@@ -11,7 +11,7 @@ extension BERTLV {
     
     public static func parse(hexString: String) throws -> [BERTLV] {
         guard let bytes = [UInt8](hexString: hexString) else {
-            throw Error.failedToParseHexString
+            throw BERTLVError.failedToParseHexString
         }
         
         return try parse(bytes: bytes)
@@ -23,12 +23,12 @@ extension BERTLV {
         
         while bytes.count != 0 {
             if let first = bytes.first,
-               first == .paddingByte {
+               first.isPaddingByte {
                 // Padding byte
-                // According to Annex B of EMV 4.3 Book 3:
+                // ISO 7816 Annex D.1: BER-TLV data object:
                 // Before, between, or after TLV-coded data objects, '00' bytes without any meaning
                 // may occur (for example, due to erased or modified TLV-coded data objects).
-                tags.append(.paddingByte)
+                try tags.append(.paddingByte(first))
                 bytes = Array(bytes.dropFirst())
             } else {
                 let (type, typeLength, isConstructed) = try type(from: bytes)
@@ -39,7 +39,7 @@ extension BERTLV {
                 let from: Int = typeLength + lengthLength
                 let to: Int = from + length
                 guard bytes.endIndex >= to else {
-                    throw Error.valueTooShort
+                    throw BERTLVError.valueTooShort
                 }
                 let value: [UInt8] = Array(bytes[from..<to])
                 let tag = try BERTLV(
@@ -64,7 +64,7 @@ extension BERTLV {
         isConstructed: Bool
     ) {
         guard let first = bytes.first else {
-            throw Error.missingType
+            throw BERTLVError.missingType
         }
         
         var type: UInt64 = UInt64(first)
@@ -99,7 +99,7 @@ extension BERTLV {
         lengthBytes: [UInt8]
     ) {
         guard let first = bytes.first else {
-            throw Error.missingLength
+            throw BERTLVError.missingLength
         }
         
         let lengthLength: Int
@@ -116,7 +116,7 @@ extension BERTLV {
             lengthLength = Int(first & 0x0F) + 1
             
             guard lengthLength <= bytes.dropFirst().endIndex else {
-                throw Error.wrongLongLength
+                throw BERTLVError.wrongLongLength
             }
             
             for byte in bytes.dropFirst()[1..<lengthLength] {

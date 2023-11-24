@@ -21,9 +21,12 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0xC1)
-        XCTAssertEqual(sutTag.isConstructed, false)
         XCTAssertEqual(sutTag.value.count, 1)
         XCTAssertEqual(sutTag.value, [0x01])
+        guard case .plain = sutTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testParseNoLength() throws {
@@ -33,7 +36,7 @@ final class SwiftyBERTLVTests: XCTestCase {
             try BERTLV.parse(bytes: data),
             "",
             { error in
-                guard case BERTLV.Error.missingLength = error else {
+                guard case BERTLVError.missingLength = error else {
                     XCTFail()
                     return
                 }
@@ -49,7 +52,7 @@ final class SwiftyBERTLVTests: XCTestCase {
             try BERTLV.type(from: data),
             "",
             { error in
-                guard case BERTLV.Error.missingType = error else {
+                guard case BERTLVError.missingType = error else {
                     XCTFail()
                     return
                 }
@@ -67,8 +70,11 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0xC1)
-        XCTAssertEqual(sutTag.isConstructed, false)
         XCTAssertEqual(sutTag.value.count, 0)
+        guard case .plain = sutTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testParseConstructedTag() throws {
@@ -81,15 +87,21 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0xE1)
-        XCTAssertEqual(sutTag.isConstructed, true)
+        guard case let .constructed(subtags) = sutTag.category else {
+            XCTFail()
+            return
+        }
         XCTAssertEqual(sutTag.value.count, 3)
         
-        let subTag = try XCTUnwrap(BERTLV.parse(bytes: sutTag.value).first)
+        let subTag = try XCTUnwrap(subtags.first)
         
         XCTAssertEqual(subTag.tag, 0x5A)
-        XCTAssertEqual(subTag.isConstructed, false)
         XCTAssertEqual(subTag.value.count, 1)
         XCTAssertEqual(subTag.value, [0xFF])
+        guard case .plain = subTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testValueTooShort() throws {
@@ -99,7 +111,7 @@ final class SwiftyBERTLVTests: XCTestCase {
             try BERTLV.parse(bytes: data),
             "",
             { error in
-                guard case BERTLV.Error.valueTooShort = error else {
+                guard case BERTLVError.valueTooShort = error else {
                     XCTFail()
                     return
                 }
@@ -121,8 +133,11 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0x4F)
-        XCTAssertEqual(sutTag.isConstructed, false)
         XCTAssertEqual(sutTag.value.count, 3)
+        guard case .plain = sutTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testParseLongLengthZeroLengthTag() throws {
@@ -138,8 +153,11 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0x4F)
-        XCTAssertEqual(sutTag.isConstructed, false)
         XCTAssertEqual(sutTag.value.count, 0)
+        guard case .plain = sutTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testParseLongFormTypeTag() throws {
@@ -155,8 +173,11 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0xDFDFDF33)
-        XCTAssertEqual(sutTag.isConstructed, false)
         XCTAssertEqual(sutTag.value.count, 0)
+        guard case .plain = sutTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testParseConstructedSubtags() throws {
@@ -169,15 +190,21 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0xE1)
-        XCTAssertEqual(sutTag.isConstructed, true)
+        guard case let .constructed(subtags) = sutTag.category else {
+            XCTFail()
+            return
+        }
         XCTAssertEqual(sutTag.value.count, 3)
         
-        let subTag = try XCTUnwrap(sutTag.subTags.first)
+        let subTag = try XCTUnwrap(subtags.first)
         
         XCTAssertEqual(subTag.tag, 0x5A)
-        XCTAssertEqual(subTag.isConstructed, false)
         XCTAssertEqual(subTag.value.count, 1)
         XCTAssertEqual(subTag.value, [0xFF])
+        guard case .plain = subTag.category else {
+            XCTFail()
+            return
+        }
     }
     
     func testNoParsePrimitiveSubtags() throws {
@@ -190,9 +217,11 @@ final class SwiftyBERTLVTests: XCTestCase {
         let sutTag = try XCTUnwrap(sut.first)
         
         XCTAssertEqual(sutTag.tag, 0x50)
-        XCTAssertFalse(sutTag.isConstructed)
+        guard case .plain = sutTag.category else {
+            XCTFail()
+            return
+        }
         XCTAssertEqual(sutTag.value.count, 3)
-        XCTAssertTrue(sutTag.subTags.isEmpty)
     }
     
     func testShortBytesRepresentation() throws {
@@ -243,6 +272,37 @@ final class SwiftyBERTLVTests: XCTestCase {
         
         let suts = try BERTLV.parse(bytes: data)
         XCTAssertEqual(suts.count, 6)
+        XCTAssertEqual(data, suts.flatMap(\.bytes))
+    }
+    
+    func testParseFFPadding() throws {
+        let data: [UInt8] = [
+            0xFF,
+            0xDF, 0xBF, 0x05, 0x01, 0x01,
+            0xFF,
+            0xFF,
+            0xC1, 0x01, 0x00,
+            0xFF
+        ]
+        
+        let suts = try BERTLV.parse(bytes: data)
+        XCTAssertEqual(suts.count, 6)
+        XCTAssertEqual(data, suts.flatMap(\.bytes))
+    }
+    
+    func testParseMixedPadding() throws {
+        let data: [UInt8] = [
+            0xFF,
+            0xDF, 0xBF, 0x05, 0x01, 0x01,
+            0xFF,
+            0x00,
+            0xC1, 0x01, 0x00,
+            0x00,
+            0xFF
+        ]
+        
+        let suts = try BERTLV.parse(bytes: data)
+        XCTAssertEqual(suts.count, 7)
         XCTAssertEqual(data, suts.flatMap(\.bytes))
     }
     
