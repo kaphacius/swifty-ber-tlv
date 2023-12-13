@@ -110,5 +110,62 @@ final class UtilsTest: XCTestCase {
         let int4: UInt64 = 0x00000000000000FF
         XCTAssertEqual(int4.bytes, [0xFF])
     }
+    
+    func testIsLongFormTag() {
+        let sut1: UInt8 = 0xDF
+        XCTAssertTrue(sut1.isLongFormTag)
+        
+        let sut2: UInt8 = 0x1F
+        XCTAssertTrue(sut2.isLongFormTag)
+        
+        let sut3: UInt8 = 0x1E
+        XCTAssertFalse(sut3.isLongFormTag)
+        
+        let sut4: UInt8 = 0xF7
+        XCTAssertFalse(sut4.isLongFormTag)
+    }
+    
+    func testIsConstructedTag() {
+        let sut1: UInt8 = 0x2F
+        XCTAssertTrue(sut1.isConstructedTag)
+        
+        let sut2: UInt8 = 0xE0
+        XCTAssertTrue(sut2.isConstructedTag)
+        
+        let sut3: UInt8 = 0xDF
+        XCTAssertFalse(sut3.isConstructedTag)
+        
+        let sut4: UInt8 = 0x10
+        XCTAssertFalse(sut4.isConstructedTag)
+    }
+    
+    func testIsLongFormLength() {
+        let sut1: UInt8 = 0x8F
+        XCTAssertTrue(sut1.isLongFormLength)
+        
+        let sut2: UInt8 = 0xF0
+        XCTAssertTrue(sut2.isLongFormLength)
+        
+        let sut3: UInt8 = 0x70
+        XCTAssertFalse(sut3.isLongFormLength)
+        
+        let sut4: UInt8 = 0x0F
+        XCTAssertFalse(sut4.isLongFormLength)
+    }
+    
+    func testIsPaddingByte() {
+        let sut1: UInt8 = 0xFF
+        XCTAssertTrue(sut1.isPaddingByte)
+        
+        let sut2: UInt8 = 0x00
+        XCTAssertTrue(sut2.isPaddingByte)
+        
+        let sut3: UInt8 = 0xAA
+        XCTAssertFalse(sut3.isPaddingByte)
+        
+        let sut4: UInt8 = 0xBB
+        XCTAssertFalse(sut4.isPaddingByte)
+    }
+    
 
 }

@@ -9,13 +9,6 @@ import Foundation
 
 extension FixedWidthInteger {
     
-    static var paddingByte: Self { 0x00 }
-    static var otherPaddingByte: Self { 0xFF }
-    
-    public var isPaddingByte: Bool {
-        self == Self.paddingByte || self == Self.otherPaddingByte
-    }
-    
     public var hexString: String {
         let converted = String(self, radix: 16, uppercase: true)
         if converted.count % 2 == 0 {
@@ -39,6 +32,37 @@ extension FixedWidthInteger {
                 UInt8(truncatingIfNeeded: self >> (byteNumber * UInt8.bitWidth))
             }
     }
+    
+}
+
+extension UInt8 {
+    
+    /// Checks if tag is constructed according to ISO 7816.
+    /// Tag is constructed if the first byte has bit 3 set to 1.
+    public var isConstructedTag: Bool {
+        self & 0x20 == 0x20
+    }
+    
+    /// Checks if tag has long form according to ISO 7816.
+    /// Tag has long form if the first byte has bits 4-8 set to 1.
+    public var isLongFormTag: Bool {
+        self & 0x1F == 0x1F
+    }
+    
+    /// Checks if length has long form according to ISO 7816.
+    /// Length has long form if the first byte has bit 1 set to 1.
+    public var isLongFormLength: Bool {
+        self & 0x80 == 0x80
+    }
+    
+    /// Check if byte is a padding byte according to ISO 7816 Annex D.1.
+    /// Padding bytes can have value 0x00 or 0xFF.
+    public var isPaddingByte: Bool {
+        self == Self.paddingByte || self == Self.otherPaddingByte
+    }
+    
+    internal static let paddingByte = 0x00
+    internal static let otherPaddingByte = 0xFF
     
 }
 

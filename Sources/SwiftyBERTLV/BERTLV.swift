@@ -84,7 +84,7 @@ public struct BERTLV: CustomStringConvertible, Equatable {
     
     /// Padding byte initializer
     private init() {
-        self.tag = .paddingByte
+        self.tag = UInt64(UInt8.paddingByte)
         self.lengthBytes = []
         self.value = []
         self.category = .plain

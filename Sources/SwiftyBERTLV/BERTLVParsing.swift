@@ -68,12 +68,11 @@ extension BERTLV {
         }
         
         var type: UInt64 = UInt64(first)
-        let isConstructed = type & 0x20 == 0x20
+        let isConstructed = first.isConstructedTag
         var typeLength: Int = 1
         
         // Type long form
-        // Long form if bits 1-5 are set to 1
-        if first & 0x1F == 0x1F {
+        if first.isLongFormTag {
             type = UInt64(first)
             for byte in bytes.dropFirst() {
                 type <<= 8
@@ -107,7 +106,7 @@ extension BERTLV {
         var lengthBytes: [UInt8] = [first]
         
         // Length is in long form if bit 8 is set to 1
-        if first & 0x80 == 0x80 {
+        if first.isLongFormLength {
             length = 0
             
             // Length length
