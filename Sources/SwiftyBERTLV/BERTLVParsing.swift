@@ -131,4 +131,36 @@ extension BERTLV {
         return (length, lengthBytes)
     }
     
+    internal static func lengthBytes(for length: Int) -> [UInt8] {
+        if length <= (UInt8.max ^ 0x80) {
+            // If length can fit in 7 bits - short form length is used
+            return [UInt8(length)]
+        } else {
+            // First byte is encoded as a long form indicator.
+            // First bit is set to 1, indicating the lenth long form.
+            // The bits 2-8 indicate the number of bytes that encode the length.
+            
+            // Find the number of bytes required.
+            // Take leadingZeroBitCount, find number of unused full bytes.
+            let uLength = UInt64(length)
+            let unusedFullBytes = uLength.leadingZeroBitCount / UInt8.bitWidth
+            // UInt64 is represented by 8 bytes.
+            let bytesRequired = 0x08 - unusedFullBytes
+            // Long form is indicated in the by setting bit 1 to 1.
+            // Rest of the bits indicate the number of bytes that comprise the actual length.
+            let first: UInt8 = 0x80 | UInt8(bytesRequired)
+            
+            var bytes: [UInt8] = []
+            for i in 0..<bytesRequired {
+                // Shift length right required amount of times
+                let shifted = uLength >> (8 * i)
+                // Get 8 highest bits and extract them
+                let extracted = UInt8(shifted & 0xFF)
+                bytes.insert(extracted, at: 0)
+            }
+            
+            return [first] + bytes
+        }
+    }
+    
 }

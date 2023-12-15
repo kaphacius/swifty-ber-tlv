@@ -330,4 +330,22 @@ final class SwiftyBERTLVTests: XCTestCase {
         XCTAssertEqual(data, sut.bytes)
     }
     
+    func testShortLengthToBytes() {
+        let shortLength = Int(UInt8.max ^ 0x80)
+        let sut1 = BERTLV.lengthBytes(for: shortLength)
+        XCTAssertEqual(sut1, [UInt8(shortLength)])
+    }
+    
+    func testLongLengthToBytes() {
+        let longLength = Int(UInt8.max)
+        let sut1 = BERTLV.lengthBytes(for: longLength)
+        XCTAssertEqual(sut1, [0x81, UInt8.max])
+    }
+    
+    func testVeryLongLengthToBytes() {
+        let longLength = 500_000
+        let sut1 = BERTLV.lengthBytes(for: longLength)
+        XCTAssertEqual(sut1, [0x83, 0x07, 0xA1, 0x20])
+    }
+    
 }

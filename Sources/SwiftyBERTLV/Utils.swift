@@ -37,19 +37,19 @@ extension FixedWidthInteger {
 
 extension UInt8 {
     
-    /// Checks if tag is constructed according to ISO 7816.
+    /// Checks if tag is constructed according to ISO 8825.
     /// Tag is constructed if the first byte has bit 3 set to 1.
     public var isConstructedTag: Bool {
         self & 0x20 == 0x20
     }
     
-    /// Checks if tag has long form according to ISO 7816.
+    /// Checks if tag has long form according to ISO 8825.
     /// Tag has long form if the first byte has bits 4-8 set to 1.
     public var isLongFormTag: Bool {
         self & 0x1F == 0x1F
     }
     
-    /// Checks if length has long form according to ISO 7816.
+    /// Checks if length has long form according to ISO 8825.
     /// Length has long form if the first byte has bit 1 set to 1.
     public var isLongFormLength: Bool {
         self & 0x80 == 0x80

@@ -53,6 +53,18 @@ public struct BERTLV: CustomStringConvertible, Equatable {
         "0x\(tag.hexString) -> 0x\(value.map(\.hexString))"
     }
     
+    /// Constructs a BERTLV with given and value.
+    /// - Parameters:
+    ///   - tag: T part of the TLV.
+    ///   - value: V part of the TLV.
+    ///   - category: Category of the tag.
+    public init(tag: UInt64, value: [UInt8], category: Category) {
+        self.tag = tag
+        self.value = value
+        self.category = category
+        self.lengthBytes = Self.lengthBytes(for: value.count)
+    }
+    
     internal static func paddingByte(_ value: UInt8) throws -> BERTLV {
         guard value.isPaddingByte else {
             throw BERTLVError.wrongPaddingByte(value)
