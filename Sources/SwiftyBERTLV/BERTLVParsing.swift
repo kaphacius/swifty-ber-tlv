@@ -41,6 +41,9 @@ extension BERTLV {
                 guard bytes.endIndex >= to else {
                     throw BERTLVError.valueTooShort
                 }
+                guard to >= from else {
+                    throw BERTLVError.invalidTLV
+                }
                 let value: [UInt8] = Array(bytes[from..<to])
                 let tag = try BERTLV(
                     tag: type,

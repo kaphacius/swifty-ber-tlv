@@ -14,6 +14,7 @@ public enum BERTLVError: Error {
     case missingType
     case wrongLongLength
     case valueTooShort
+    case invalidTLV
     case wrongPaddingByte(UInt8)
     
 }
