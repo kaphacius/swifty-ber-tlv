@@ -83,7 +83,7 @@ extension BERTLV {
                 typeLength += 1
                 // Type continues
                 // If bit 8 is set to 1 - type continues
-                if byte & 0x80 == 0x80 {
+                if byte.isLongFormLength {
                     continue
                 } else {
                     break
